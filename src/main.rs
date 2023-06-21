@@ -12,7 +12,7 @@ struct Cli {
     command: Commands,
 
     /// Path to LZARI executable
-    #[arg(default_value_t = String::from("tools/lzari"))]
+    #[arg(default_value_t = String::from("tools/lzari/lzari"))]
     lzari: String,
 }
 
