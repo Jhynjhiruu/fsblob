@@ -28,16 +28,11 @@ enum Commands {
 #[derive(Args)]
 struct BuildArgs {
     /// Files to build into the FS blob
-    files: Vec<PathBuf>,
+    files: Vec<String>,
 
     /// Output file
     #[arg(short, long)]
     outfile: PathBuf,
-
-    /// Whether to fudge the filename "tile1.tg~" to match
-    #[arg(short, long)]
-    #[arg(default_value_t = false)]
-    matching: bool,
 
     /// Size to pad to
     #[arg(short, long, value_parser = maybe_hex::<usize>)]
@@ -59,13 +54,7 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Build(args) => build_fs(
-            args.files,
-            args.outfile,
-            args.matching,
-            args.pad,
-            cli.lzari.into(),
-        ),
+        Commands::Build(args) => build_fs(args.files, args.outfile, args.pad, cli.lzari.into()),
         Commands::Extract(args) => extract_fs(args.infile, args.outdir.into(), cli.lzari.into()),
     }
 }
