@@ -147,7 +147,13 @@ pub fn extract_fs(infile: PathBuf, outdir: PathBuf, lzari: PathBuf) -> Result<()
                 "d",
                 &tempfile.path().to_string_lossy(),
                 &outdir
-                    .join(String::from_utf8(file.name.to_vec()).expect("Filename must be valid"))
+                    .join(
+                        String::from_utf8(file.name.to_vec())
+                            .expect("Filename must be valid")
+                            .split('\0')
+                            .next()
+                            .expect(".split should always return at least one segment"),
+                    )
                     .to_string_lossy(),
             ])
             .status()?;
