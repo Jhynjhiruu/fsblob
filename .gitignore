@@ -1,3 +1,9 @@
 /target
-/fs
-fs.bin
+
+*.bin
+*.raw
+*.pal
+*.tg~
+*.gb
+
+Cargo.lock

@@ -6,8 +6,8 @@ use std::{
 };
 
 use anyhow::{anyhow, Result};
+use lzari::LZARIContext;
 use snailquote::unescape;
-use tempfile::{NamedTempFile, TempDir};
 
 use binrw::{binrw, BinReaderExt, BinWrite};
 
@@ -28,12 +28,7 @@ fn copy_from_str(dest: &mut [u8], src: &str) {
     }
 }
 
-pub fn build_fs(
-    files: Vec<String>,
-    outfile: PathBuf,
-    pad: Option<usize>,
-    lzari: PathBuf,
-) -> Result<()> {
+pub fn build_fs(files: Vec<String>, outfile: PathBuf, pad: Option<usize>) -> Result<()> {
     let files = files
         .iter()
         .map(|f| {
@@ -79,13 +74,10 @@ pub fn build_fs(
     let mut data = vec![];
     let mut cursor = Cursor::new(&mut data);
 
-    let tempdir = TempDir::new()?;
-    let tempfile = tempdir.into_path().join("comp.bin");
     for (file, filename) in &files {
-        Command::new(&lzari)
-            .args(["e", &file.to_string_lossy(), &tempfile.to_string_lossy()])
-            .status()?;
-        let compressed = read(&tempfile)?;
+        let filedata = read(file)?;
+
+        let compressed = LZARIContext::new(&filedata).encode();
 
         let mut name = [0; 12];
         copy_from_str(&mut name, filename);
@@ -110,7 +102,7 @@ pub fn build_fs(
     Ok(())
 }
 
-pub fn extract_fs(infile: PathBuf, outdir: PathBuf, lzari: PathBuf) -> Result<()> {
+pub fn extract_fs(infile: PathBuf, outdir: PathBuf) -> Result<()> {
     if !infile.exists() || !infile.is_file() {
         return Err(anyhow!("{} is not a file", infile.to_string_lossy()));
     }
@@ -134,29 +126,24 @@ pub fn extract_fs(infile: PathBuf, outdir: PathBuf, lzari: PathBuf) -> Result<()
             Ok(f) => f,
             Err(_) => break,
         };
-        if file.len == 0xFFFFFFFF {
+        if file.len == 0xFFFFFFFF || file.len < 0x10 {
             break;
         }
         let mut compressed = vec![0; file.len as usize - 0x10];
         cursor.read_exact(&mut compressed)?;
 
-        let mut tempfile = NamedTempFile::new()?;
-        tempfile.write_all(&compressed)?;
-        Command::new(&lzari)
-            .args([
-                "d",
-                &tempfile.path().to_string_lossy(),
-                &outdir
-                    .join(
-                        String::from_utf8(file.name.to_vec())
-                            .expect("Filename must be valid")
-                            .split('\0')
-                            .next()
-                            .expect(".split should always return at least one segment"),
-                    )
-                    .to_string_lossy(),
-            ])
-            .status()?;
+        let decompressed = LZARIContext::new(&compressed).decode();
+
+        write(
+            outdir.join(
+                String::from_utf8(file.name.to_vec())
+                    .expect("Filename must be valid")
+                    .split('\0')
+                    .next()
+                    .expect(".split should always return at least one segment"),
+            ),
+            decompressed,
+        )?;
     }
 
     Ok(())

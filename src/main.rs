@@ -10,10 +10,6 @@ use fsblob::{build_fs, extract_fs};
 struct Cli {
     #[command(subcommand)]
     command: Commands,
-
-    /// Path to LZARI executable
-    #[arg(default_value_t = String::from("tools/lzari/lzari"))]
-    lzari: String,
 }
 
 #[derive(Subcommand)]
@@ -54,7 +50,7 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Build(args) => build_fs(args.files, args.outfile, args.pad, cli.lzari.into()),
-        Commands::Extract(args) => extract_fs(args.infile, args.outdir.into(), cli.lzari.into()),
+        Commands::Build(args) => build_fs(args.files, args.outfile, args.pad),
+        Commands::Extract(args) => extract_fs(args.infile, args.outdir.into()),
     }
 }

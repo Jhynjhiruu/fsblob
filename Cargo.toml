@@ -10,5 +10,5 @@ anyhow = "1.0.71"
 binrw = "0.11.2"
 clap = { version = "4.3.5", features = ["derive"] }
 clap-num = "1.0.2"
+lzari = { git = "https://github.com/Jhynjhiruu/lzari.git", version = "0.1.0" }
 snailquote = "0.3.1"
-tempfile = "3.6.0"
