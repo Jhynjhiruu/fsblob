@@ -33,6 +33,10 @@ struct BuildArgs {
     /// Size to pad to
     #[arg(short, long, value_parser = maybe_hex::<usize>)]
     pad: Option<usize>,
+
+    /// Byte to pad with
+    #[arg(short, long, value_parser = maybe_hex::<u8>, default_value_t = 0xFF, requires("pad"))]
+    byte: u8,
 }
 
 #[derive(Args)]
@@ -50,7 +54,7 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Build(args) => build_fs(args.files, args.outfile, args.pad),
+        Commands::Build(args) => build_fs(args.files, args.outfile, args.pad, args.byte),
         Commands::Extract(args) => extract_fs(args.infile, args.outdir.into()),
     }
 }

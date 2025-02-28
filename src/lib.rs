@@ -28,7 +28,12 @@ fn copy_from_str(dest: &mut [u8], src: &str) {
     }
 }
 
-pub fn build_fs(files: Vec<String>, outfile: PathBuf, pad: Option<usize>) -> Result<()> {
+pub fn build_fs(
+    files: Vec<String>,
+    outfile: PathBuf,
+    pad: Option<usize>,
+    pad_with: u8,
+) -> Result<()> {
     let files = files
         .iter()
         .map(|f| {
@@ -93,7 +98,7 @@ pub fn build_fs(files: Vec<String>, outfile: PathBuf, pad: Option<usize>) -> Res
 
     if let Some(size) = pad {
         if (cursor.position() as usize) < size {
-            cursor.write_all(&vec![0xFF; size - cursor.position() as usize])?;
+            cursor.write_all(&vec![pad_with; size - cursor.position() as usize])?;
         }
     }
 
